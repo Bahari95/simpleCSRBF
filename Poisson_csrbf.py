@@ -54,7 +54,7 @@ nx = 100; ny =100; n =nx*ny;
 X = loadtxt('X_ad_'+str(nx)+'.txt')
 Y = loadtxt('Y_ad_'+str(ny)+'.txt')
 
-# ... Spectrum in space
+# ... Support
 s          = 0.05
 
 # stiffness matrix
