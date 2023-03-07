@@ -1,5 +1,5 @@
 # simpleCSRBF
-accelerated minimalist library for the compactly supported radial basis function CSRBF to simulate various problems
+accelerated minimalist library for the compactly supported radial basis function CSRBF to simulate various problems in 2D
 
 ### Below is an example of Poisson equation with homogeneous Dirichlet boundary condition
 
