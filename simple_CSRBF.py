@@ -7,7 +7,8 @@ Basic module that provides the means for evaluating the CSRBF basis
 functions. In order to simplify automatic Fortran code
 generation with Pyccel.
 """
-__all__ = ['CSRBF_tools']
+__all__ = ['CSRBF_tools',
+          'assemble_mass']
 
 from pyccel.decorators              import types
 from pyccel.epyccel                 import epyccel
@@ -80,3 +81,51 @@ def CSRBF_basis(X, Y, nx, ny, s):
 	op_span_y[:,:,:] = span_y[:,:,:max_span]
 	del span_y
 	return op_span_x, op_span_y, op_r_xy, spect_r
+	
+	
+@types('real[:,:]', 'real[:,:]', 'int', 'int', 'real', 'int[:,:,:]', 'int[:,:,:]', 'real[:,:,:]', 'int[:,:]', 'real[:,:,:,:]',)
+def assemble_mass(X_cor, Y_cor, nx, ny, s, span_x, span_y, r_xy, spect_r, K): 
+     from numpy import exp
+     from numpy import cos
+     from numpy import sin
+     from numpy import pi
+     from numpy import sqrt
+     for i1 in range(0,nx):
+        for i2 in range(0,ny):
+                 
+                 spectr = spect_r[i1, i2]
+                 for ij_span in range(spectr):
+                         j1 = span_x[i1, i2, ij_span]
+                         j2 = span_y[i1, i2, ij_span]
+                         r  = r_xy  [i1, i2, ij_span]
+                         #...
+                         K[i1,i2,j1,j2]  = (1-r/s)**6.*(3+18.*r/s+35.*(r/s)**2)
+     return 0
+     
+assemble_mass_matrix = epyccel(assemble_mass)    
+
+def results(X, Y, nx, ny, s, span_x, span_y, r_xy, spect_r, control_points):
+	#... Mass matrix 
+	K          = np.zeros((nx,ny,nx,ny), dtype = np.double)
+
+	# ... Assembles mass matrix for compute a soluotion in grid points
+	assemble_mass_matrix(X, Y, nx, ny, s, span_x, span_y, r_xy, spect_r, K)
+
+	K         = K.reshape(nx*ny, nx*ny)
+	# ...
+	u_csrbf   = K.dot(control_points)
+	u_csrbf   = u_csrbf.reshape(nx,ny)
+	# ...
+	return u_csrbf
+
+
+
+
+
+
+
+
+
+
+
+

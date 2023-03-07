@@ -21,9 +21,8 @@ import time
 
 #./// TOOLS for CSRBF simulation
 from gallery_section_01             import assemble_Poisson_stiffnes_rhs
-from gallery_section_01             import assemble_mass_matrix
 from simple_CSRBF                   import CSRBF_basis
-
+from simple_CSRBF                   import results
 
 #======================================================================================
 ##                    II- CSRBF method -II
@@ -63,15 +62,8 @@ s          = 0.05
 
 # stiffness matrix
 stiffness  = np.zeros((nx,ny,nx,ny), dtype = np.double)   
-
 # right hand side
 rhs        = np.zeros((nx,ny), dtype = np.double)         
-
-#... Mass matrix 
-K          = np.zeros((nx,ny,nx,ny), dtype = np.double)
-
-U_CSRBF_ET = np.zeros((nx,ny))
-U_exact_ET = np.zeros((nx,ny))
 
 # ... Computation of CSRBF TOOLS
 span_x, span_y, r_xy, spect_r = CSRBF_basis(X, Y, nx, ny, s)
@@ -79,32 +71,25 @@ span_x, span_y, r_xy, spect_r = CSRBF_basis(X, Y, nx, ny, s)
 # ... Assembles matrix and rhs of RBF-Poisson
 assemble_Poisson_stiffnes_rhs(X, Y, nx, ny, s, span_x, span_y, r_xy, spect_r, stiffness, rhs)
 
-# ... Assembles mass matrix for compute a soluotion in grid points
-assemble_mass_matrix(X, Y, nx, ny, s, span_x, span_y, r_xy, spect_r, K)
-
 # ... Linear system from RBF 
 stiffness = stiffness.reshape(nx*ny, nx*ny)
 # ...
 rhs       = rhs.reshape(nx*ny)
 
 # ... Resolution of linear system
-lu     = sla.splu(csc_matrix(stiffness))
+lu        = sla.splu(csc_matrix(stiffness))
 
-alphas = lu.solve(rhs)
+alphas    = lu.solve(rhs)
 
 
 # ... Computation of the RBF approximate solution
-K         = K.reshape(nx*ny, nx*ny)
-# ...
-alphas = K.dot(alphas)
+U_CSRBF_ET = results(X, Y, nx, ny, s, span_x, span_y, r_xy, spect_r, alphas)
 
-for i in range(nx):
-    for j in range(ny):
-        U_CSRBF_ET[i,j] = alphas[i+j*nx]
-        #... test 0
-        U_exact_ET[i,j] = exp(-200.*(((X[i,j]-.5)/0.4)**2+((Y[i,j]-.5)/0.4)**2-0.6)**2 )
-        #... test 1
-        #U_exact_ET[i,j] = sin(pi*X[i,j])*sin(pi*Y[i,j])
+#... test 0
+U_exact_ET = exp(-200.*(((X-.5)/0.4)**2+((Y-.5)/0.4)**2-0.6)**2 )
+
+#... test 1
+#U_exact_ET[i,j] = sin(pi*X)*sin(pi*Y)
          
 print(" ERROR INFTY =", np.max(np.absolute( U_CSRBF_ET - U_exact_ET)) )
 

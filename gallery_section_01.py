@@ -1,8 +1,7 @@
 ## coding
 #
 # Copyright 2023 BAHARI Mustapha
-__all__ = ['assemble_Poisson_tools'
-          'assemble_mass']
+__all__ = ['assemble_Poisson_tools']
 
 from pyccel.decorators              import types
 from pyccel.epyccel                 import epyccel
@@ -93,25 +92,4 @@ def assemble_Poisson_tools(X_cor, Y_cor, nx, ny, s, span_x, span_y, r_xy, spect_
                  Bs[i1,i2] = 0
      return 0
      
-assemble_Poisson_stiffnes_rhs = epyccel(assemble_Poisson_tools)
-
-@types('real[:,:]', 'real[:,:]', 'int', 'int', 'real', 'int[:,:,:]', 'int[:,:,:]', 'real[:,:,:]', 'int[:,:]', 'real[:,:,:,:]',)
-def assemble_mass(X_cor, Y_cor, nx, ny, s, span_x, span_y, r_xy, spect_r, K): 
-     from numpy import exp
-     from numpy import cos
-     from numpy import sin
-     from numpy import pi
-     from numpy import sqrt
-     for i1 in range(0,nx):
-        for i2 in range(0,ny):
-                 
-                 spectr = spect_r[i1, i2]
-                 for ij_span in range(spectr):
-                         j1 = span_x[i1, i2, ij_span]
-                         j2 = span_y[i1, i2, ij_span]
-                         r  = r_xy  [i1, i2, ij_span]
-                         #...
-                         K[i1,i2,j1,j2]  = (1-r/s)**6.*(3+18.*r/s+35.*(r/s)**2)
-     return 0
-     
-assemble_mass_matrix = epyccel(assemble_mass)     
+assemble_Poisson_stiffnes_rhs = epyccel(assemble_Poisson_tools) 
