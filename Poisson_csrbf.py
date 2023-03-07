@@ -49,7 +49,7 @@ xl    = np.linspace(0,1, nx)
 yl    = np.linspace(0,1, ny)
 X, Y  = np.meshgrid(xl, yl)
 
-#... ADpted mesh using 100 times 100 only and test 0 only
+#... Adapted mesh using nx = 100 times ny = 100 and test 0 only
 nx = 100; ny =100; n =nx*ny;
 X = loadtxt('X_ad_'+str(nx)+'.txt')
 Y = loadtxt('Y_ad_'+str(ny)+'.txt')
