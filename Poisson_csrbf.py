@@ -32,6 +32,9 @@ from simple_CSRBF                   import CSRBF_basis
 ## ...see Wu and Wendland
 #======================================================================================
 
+# _ We use the Wendland function of the following form
+# _f_ro(r)=(1-r/ro)^2_{+}(3+18r/ro+35(r/ro)^2) où r=norm(X-Y,2)._
+#--------------------------------------------------------------------------------------
 
 
 # The RBF function coefficient
@@ -68,10 +71,6 @@ K          = np.zeros((nx,ny,nx,ny), dtype = np.double)
 
 U_CSRBF_ET = np.zeros((nx,ny))
 U_exact_ET = np.zeros((nx,ny))
-
-# _ On utilsons la fonction de Wendland de la forme suivante_
-# _f_ro(r)=(1-r/ro)^2_{+}(3+18r/ro+35(r/ro)^2) où r=norm(X-Y,2)._
-#njit(fastmath = True)
 
 # ... Computation of CSRBF TOOLS
 span_x, span_y, r_xy, spect_r = CSRBF_basis(X, Y, nx, ny, s)
