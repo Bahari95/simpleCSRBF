@@ -66,10 +66,10 @@ stiffness  = np.zeros((nx,ny,nx,ny), dtype = np.double)
 rhs        = np.zeros((nx,ny), dtype = np.double)         
 
 # ... Computation of CSRBF TOOLS
-span_x, span_y, r_xy, spect_r = CSRBF_basis(X, Y, nx, ny, s)
+span, r_xy, support = CSRBF_basis(X, Y, nx, ny, s)
 
 # ... Assembles matrix and rhs of RBF-Poisson
-assemble_Poisson_stiffnes_rhs(X, Y, nx, ny, s, span_x, span_y, r_xy, spect_r, stiffness, rhs)
+assemble_Poisson_stiffnes_rhs(X, Y, nx, ny, s, span, r_xy, support, stiffness, rhs)
 
 # ... Linear system from RBF 
 stiffness = stiffness.reshape(nx*ny, nx*ny)
@@ -78,12 +78,12 @@ rhs       = rhs.reshape(nx*ny)
 
 # ... Resolution of linear system
 lu        = sla.splu(csc_matrix(stiffness))
-
+# ...
 alphas    = lu.solve(rhs)
 
 
 # ... Computation of the RBF approximate solution
-U_CSRBF_ET = results(X, Y, nx, ny, s, span_x, span_y, r_xy, spect_r, alphas)
+U_CSRBF_ET = results(X, Y, nx, ny, s, span, r_xy, support, alphas)
 
 #... test 0
 U_exact_ET = exp(-200.*(((X-.5)/0.4)**2+((Y-.5)/0.4)**2-0.6)**2 )

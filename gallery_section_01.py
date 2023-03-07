@@ -7,8 +7,8 @@ from pyccel.decorators              import types
 from pyccel.epyccel                 import epyccel
 
 
-@types('real[:,:]', 'real[:,:]', 'int', 'int', 'real', 'int[:,:,:]', 'int[:,:,:]', 'real[:,:,:]', 'int[:,:]', 'real[:,:,:,:]', 'real[:,:]')
-def assemble_Poisson_tools(X_cor, Y_cor, nx, ny, s, span_x, span_y, r_xy, spect_r, As, Bs): 
+@types('real[:,:]', 'real[:,:]', 'int', 'int', 'real', 'int[:,:,:,:]', 'real[:,:,:]', 'int[:,:]', 'real[:,:,:,:]', 'real[:,:]')
+def assemble_Poisson_tools(X_cor, Y_cor, nx, ny, s, span, r_xy, support, As, Bs): 
      from numpy import exp
      from numpy import cos
      from numpy import sin
@@ -18,10 +18,10 @@ def assemble_Poisson_tools(X_cor, Y_cor, nx, ny, s, span_x, span_y, r_xy, spect_
      for i1 in range(1,nx-1):
         for i2 in range(1,ny-1):
                  
-                 spectr = spect_r[i1, i2]
+                 spectr = support[i1, i2]
                  for ij_span in range(spectr):
-                         j1 = span_x[i1, i2, ij_span]
-                         j2 = span_y[i1, i2, ij_span]
+                         j1 = span[i1, i2, 1, ij_span]
+                         j2 = span[i1, i2, 0, ij_span]
                          r  = r_xy  [i1, i2, ij_span]
                          #...
                          As[i1,i2,j1,j2] = -(-56/s**2)*(1-r/s)**4.*(2+8.*r/s-40.*(r/s)**2)
@@ -43,11 +43,11 @@ def assemble_Poisson_tools(X_cor, Y_cor, nx, ny, s, span_x, span_y, r_xy, spect_
      for i2 in range(ny):
                  # ... on the boundary x = 0.
                  i1     = 0
-                 spectr = spect_r[i1, i2]
+                 spectr = support[i1, i2]
                  for ij_span in range(spectr):
 
-                         j1 = span_x[i1, i2, ij_span]
-                         j2 = span_y[i1, i2, ij_span]
+                         j1 = span[i1, i2, 0, ij_span]
+                         j2 = span[i1, i2, 1, ij_span]
                          r  = r_xy  [i1, i2, ij_span]
                          #...
                          As[i1,i2,j1,j2] = (1-r/s)**6.*(3+18*r/s+35.*(r/s)**2)
@@ -56,11 +56,11 @@ def assemble_Poisson_tools(X_cor, Y_cor, nx, ny, s, span_x, span_y, r_xy, spect_
      for i2 in range(ny):
                  # ... on the boundary x =1
                  i1 = nx-1
-                 spectr = spect_r[i1, i2]
+                 spectr = support[i1, i2]
                  for ij_span in range(spectr):
                          #..
-                         j1 = span_x[i1, i2, ij_span]
-                         j2 = span_y[i1, i2, ij_span]
+                         j1 = span[i1, i2, 0, ij_span]
+                         j2 = span[i1, i2, 1, ij_span]
                          r  = r_xy  [i1, i2, ij_span]
                          #...
                          As[i1,i2,j1,j2] = (1-r/s)**6.*(3+18*r/s+35.*(r/s)**2)
@@ -68,11 +68,11 @@ def assemble_Poisson_tools(X_cor, Y_cor, nx, ny, s, span_x, span_y, r_xy, spect_
      for i1 in range(nx):
                  # ... on the boundary y = 0.
                  i2 = 0
-                 spectr = spect_r[i1, i2]
+                 spectr = support[i1, i2]
                  for ij_span in range(spectr):
                          #...
-                         j1 = span_x[i1, i2, ij_span]
-                         j2 = span_y[i1, i2, ij_span]
+                         j1 = span[i1, i2, 0, ij_span]
+                         j2 = span[i1, i2, 1, ij_span]
                          r  = r_xy  [i1, i2, ij_span]
                          #...
                          As[i1,i2,j1,j2] = (1-r/s)**6.*(3+18*r/s+35.*(r/s)**2)
@@ -81,11 +81,11 @@ def assemble_Poisson_tools(X_cor, Y_cor, nx, ny, s, span_x, span_y, r_xy, spect_
      for i1 in range(nx):
                  # ... on the boundary y =1
                  i2 = ny-1
-                 spectr = spect_r[i1, i2]
+                 spectr = support[i1, i2]
                  for ij_span in range(spectr):
                          #...
-                         j1 = span_x[i1, i2, ij_span]
-                         j2 = span_y[i1, i2, ij_span]
+                         j1 = span[i1, i2, 0, ij_span]
+                         j2 = span[i1, i2, 1, ij_span]
                          r  = r_xy  [i1, i2, ij_span]
                          #...
                          As[i1,i2,j1,j2] = (1-r/s)**6.*(3+18*r/s+35.*(r/s)**2)
