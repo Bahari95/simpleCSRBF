@@ -20,8 +20,8 @@ def assemble_Poisson_tools(X_cor, Y_cor, nx, ny, s, span, r_xy, support, As, Bs)
                  
                  spectr = support[i1, i2]
                  for ij_span in range(spectr):
-                         j1 = span[i1, i2, 1, ij_span]
-                         j2 = span[i1, i2, 0, ij_span]
+                         j1 = span[i1, i2, 0, ij_span]
+                         j2 = span[i1, i2, 1, ij_span]
                          r  = r_xy  [i1, i2, ij_span]
                          #...
                          As[i1,i2,j1,j2] = -(-56/s**2)*(1-r/s)**4.*(2+8.*r/s-40.*(r/s)**2)
