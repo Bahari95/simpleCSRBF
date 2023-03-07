@@ -33,7 +33,8 @@ from simple_CSRBF                   import CSRBF_basis
 #======================================================================================
 
 # _ We use the Wendland function of the following form
-# _f_ro(r)=(1-r/ro)^2_{+}(3+18r/ro+35(r/ro)^2) où r=norm(X-Y,2)._
+# _f_ro(r)= (1-r/s)**6.*(3+18*r/s+35.*(r/s)**2) où r=norm(X-Y,2)._
+#.. s is a support
 #--------------------------------------------------------------------------------------
 
 
