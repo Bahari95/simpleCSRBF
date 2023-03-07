@@ -9,3 +9,5 @@ accelerated minimalist library for the compactly supported radial basis function
 # For pyccel :
   
   https://github.com/pyccel/pyccel
+# ...
+![PNG](https://github.com/Bahari95/simpleCSRBF/blob/main/r_refinement_ex.png)
