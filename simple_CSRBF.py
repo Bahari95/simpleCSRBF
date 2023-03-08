@@ -106,6 +106,7 @@ def CSRBF_basis(X, Y, nx, ny, s):
 	pyccel_fin_support(X, Y, nx, ny, s, support)
 	# ...
 	max_span      = int(np.max(support))
+	#...
 	r_xy          = zeros((nx,ny, max_span))                     # ... computed distance for non niglicted RBF                 
 	span          = np.zeros((nx,ny,2,max_span), dtype = int)    # ... Determine the global index  for non-vanishing CSRBF
 	#...
@@ -113,7 +114,7 @@ def CSRBF_basis(X, Y, nx, ny, s):
 
 	return span, r_xy, support
 	
-	
+# .... Wendland function C6
 @types('int', 'int', 'real', 'int[:,:,:,:]', 'real[:,:,:]', 'int[:,:]', 'real[:,:,:,:]',)
 def assemble_mass(nx, ny, s, span, r_xy, support, K): 
      from numpy import exp
@@ -133,21 +134,64 @@ def assemble_mass(nx, ny, s, span, r_xy, support, K):
                          K[i1,i2,j1,j2]  = (1-r/s)**6.*(3+18.*r/s+35.*(r/s)**2)
      return 0
      
-assemble_mass_matrix = epyccel(assemble_mass)    
+assemble_mass_matrixWC6 = epyccel(assemble_mass)    
 
-def results(X, Y, nx, ny, s, span, r_xy, support, control_points):
+# ..... MultiQuadric	
+@types('int', 'int', 'real', 'int[:,:,:,:]', 'real[:,:,:]', 'int[:,:]', 'real[:,:,:,:]')
+def assemble_massMQ(nx, ny, c, span, r_xy, support, K): 
+     from numpy import exp
+     from numpy import cos
+     from numpy import sin
+     from numpy import pi
+     from numpy import sqrt
+     for i1 in range(0,nx):
+        for i2 in range(0,ny):
+                 
+                 spectr = support[i1, i2]
+                 for ij_span in range(spectr):
+                         j1 = span[i1, i2, 0, ij_span]
+                         j2 = span[i1, i2, 1, ij_span]
+                         r  = r_xy  [i1, i2, ij_span]
+                         #...
+                         K[i1,i2,j1,j2]  = sqrt(r**2+c**2)
+     return 0
+     
+assemble_mass_matrixMQ = epyccel(assemble_massMQ)    
+
+@types('real[:,:]', 'real[:,:]', 'int', 'int', 'real[:,:]')
+def assemble_sol_exact(X_cor, Y_cor, nx, ny, u_exact): 
+     from numpy import exp
+     from numpy import cos
+     from numpy import sin
+     from numpy import pi
+     from numpy import sqrt
+     for i1 in range(0,nx):
+        for i2 in range(0,ny):
+                 
+                 x  = X_cor[i1,i2]
+                 t  = Y_cor[i1,i2] 
+                 for n in range(1000):
+                         u_exact[i1,i2] += 800./(pi**2*(2.*n+1)**2)*cos(pi*(2.*n-1)*(x-1.)*0.5)*exp(-0.3738*(2.*n+1)**2*t)
+     return 0
+sol_exact = epyccel(assemble_sol_exact) 
+
+def results(X, Y, nx, ny, s, span, r_xy, support, control_points, MQ = None, u_exact = None):
 	#... Mass matrix 
 	K          = np.zeros((nx,ny,nx,ny), dtype = np.double)
-
+	
 	# ... Assembles mass matrix for compute a soluotion in grid points
-	assemble_mass_matrix(nx, ny, s, span, r_xy, support, K)
-
+	if MQ == None:
+	       assemble_mass_matrixWC6(nx, ny, s, span, r_xy, support, K)
+	else :
+	       assemble_mass_matrixMQ(nx, ny, s, span, r_xy, support, K)
 	K         = K.reshape(nx*ny, nx*ny)
 	# ...
 	u_csrbf   = K.dot(control_points)
 	u_csrbf   = u_csrbf.reshape(nx,ny)
 	# ...
-	return u_csrbf
-
-
-
+	if u_exact is None :
+	      return u_csrbf
+	else :
+	      u_exact  = np.zeros((nx,ny))
+	      sol_exact(X, Y, nx, ny, u_exact)
+	      return u_csrbf, u_exact 

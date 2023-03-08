@@ -1,5 +1,5 @@
 ## coding
-#
+# CSRBF USING Wendland function C6
 # Copyright 2023 BAHARI Mustapha
 
 import matplotlib.pyplot            as     plt
@@ -20,75 +20,55 @@ import numpy                        as     np
 import time
 
 #./// TOOLS for CSRBF simulation
-from gallery_section_01             import assemble_Poisson_stiffnes_rhs
+from gallery_section_02             import assemble_csrbf_stiffnes_rhs
 from simple_CSRBF                   import CSRBF_basis
 from simple_CSRBF                   import results
 
-#======================================================================================
-##                    II- CSRBF method -II
-## ... Spectrum in space: we use only the points (base) whose distance is less than s,
-## in order to obtain the stencil matrix.
-## ...see Wu and Wendland
-#======================================================================================
-
-# _ We use the Wendland function of the following form
-# _f_ro(r)= (1-r/s)**6.*(3+18*r/s+35.*(r/s)**2) où r=norm(X-Y,2)._
-#.. s is a support
-#--------------------------------------------------------------------------------------
-
-#.. The number of points in x direction
-nx    = 100                  
-#.. The number of points in y direction
-ny    = 100
-# ... The total number of points (Number of nodes)
-n     = nx * ny
-
-# uniform cartesian mesh
-xl    = np.linspace(0,1, nx)
-yl    = np.linspace(0,1, ny)
-Y, X  = np.meshgrid(yl, xl)
-
-#... Adapted mesh using nx = 100 times ny = 100 and test 0 only
-nx = 100; ny =100; n =nx*ny;
-X = loadtxt('X_ad_'+str(nx)+'.txt')
-Y = loadtxt('Y_ad_'+str(ny)+'.txt')
-
-# ... control Support radius
+# le temps maximal
+t_max    = 3.5    
+x_max    = 2.
 # The RBF function coefficient : scaling parameter
-s          = 0.05
+s         = 0.5
+
+# ... discrètisation
+coef_diff = 0.1576
+ro        = 0.15
+#..
+dx        = 0.05 
+dt        = 0.05 #(ro*dx*dx)/coef_diff
+nt        = int(t_max/dt)
+nx        = int(x_max/dx)
+t         = np.linspace(0, t_max, nt)
+x         = np.linspace(0, x_max, nx)
+T, X      = np.meshgrid(t, x)
 
 # stiffness matrix
-stiffness  = np.zeros((nx,ny,nx,ny), dtype = np.double)   
+stiffness  = np.zeros((nx,nt,nx,nt), dtype = np.double)   
 # right hand side
-rhs        = np.zeros((nx,ny), dtype = np.double)         
+rhs        = np.zeros((nx,nt), dtype = np.double)         
 
 # ... Computation of CSRBF TOOLS
-span, r_xy, support = CSRBF_basis(X, Y, nx, ny, s)
+span, r_xt, support = CSRBF_basis(X, T, nx, nt, s)
 
 # ... Assembles matrix and rhs of RBF-Poisson
-assemble_Poisson_stiffnes_rhs(X, Y, nx, ny, s, span, r_xy, support, stiffness, rhs)
+assemble_csrbf_stiffnes_rhs(X, T, nx, nt, s, span, r_xt, support, coef_diff, stiffness, rhs)
 
 # ... Linear system from RBF 
-stiffness = stiffness.reshape(nx*ny, nx*ny)
+stiffness = stiffness.reshape(nx*nt, nx*nt)
 # ...
-rhs       = rhs.reshape(nx*ny)
+rhs       = rhs.reshape(nx*nt)
 
 # ... Resolution of linear system
 lu        = sla.splu(csc_matrix(stiffness))
+
 # ...
 alphas    = lu.solve(rhs)
 
-
 # ... Computation of the RBF approximate solution
-U_CSRBF_ET = results(X, Y, nx, ny, s, span, r_xy, support, alphas)
+U_CSRBF_ET, u_exact = results(X, T, nx, nt, s, span, r_xt, support, alphas, u_exact =  True)
 
-#... test 0
-U_exact_ET = exp(-200.*(((X-.5)/0.4)**2+((Y-.5)/0.4)**2-0.6)**2 )
-
-#... test 1
-#U_exact_ET = sin(pi*X)*sin(pi*Y)
          
-print(" ERROR INFTY =", np.max(np.absolute( U_CSRBF_ET - U_exact_ET)) )
+print(" ERROR INFTY =", np.max(np.absolute(U_CSRBF_ET- u_exact)) )
 
 ##  plot
 figtitle  = 'RBF TIME-SPACE FOR FOURIER EQUATION'
@@ -98,19 +78,19 @@ for ax in axes:
    ax.set_aspect('equal')
 
 #axes[0].set_title( 'Physical domain ' )
-for i in range(ny):
+for i in range(nt):
     phidx = X[:,i]
-    phidy = Y[:,i]
+    phidy = T[:,i]
 
     axes[0].plot(phidx, phidy, '-b', linewidth = 0.75)
 for i in range(nx):
     phidx = X[i,:]
-    phidy = Y[i,:]
+    phidy = T[i,:]
 
     axes[0].plot(phidx, phidy, '-b', linewidth = 0.75)
 #axes[0].axis('off')
 axes[0].margins(0,0)
-im    = axes[1].contourf( X, Y, U_CSRBF_ET, cmap= 'jet')
+im    = axes[1].contourf( X, T, U_CSRBF_ET, cmap= 'jet')
 divider = make_axes_locatable(axes[1]) 
 cax   = divider.append_axes("right", size="5%", pad=0.05, aspect = 40) 
 plt.colorbar(im, cax=cax)
@@ -126,7 +106,7 @@ fig = plt.figure(figsize=plt.figaspect(0.5))
 # set up the axes for the first plot
 ax = fig.add_subplot(1, 2, 1, projection='3d')
 # plot a 3D surface like in the example mplot3d/surface3d_demo
-surf0 = ax.plot_surface(X, Y, U_exact_ET, rstride=1, cstride=1, cmap=cm.coolwarm,
+surf0 = ax.plot_surface(X, T, U_CSRBF_ET, rstride=1, cstride=1, cmap=cm.coolwarm,
                        linewidth=0, antialiased=False)
 #ax.set_xlim(0.0, 1.0)
 #ax.set_ylim(0.0, 1.0)
@@ -141,7 +121,7 @@ fig.colorbar(surf0, shrink=0.5, aspect=25)
 #===============
 # Second subplot
 ax = fig.add_subplot(1, 2, 2, projection='3d')
-surf = ax.plot_surface(X, Y, U_CSRBF_ET, cmap=cm.coolwarm,
+surf = ax.plot_surface(X, T, u_exact, cmap=cm.coolwarm,
                        linewidth=0, antialiased=False)
 #ax.set_xlim(0.0, 1.0)
 #ax.set_ylim(0.0, 1.0)
