@@ -1,7 +1,9 @@
 # simpleCSRBF
 accelerated minimalist library for the compactly supported radial basis function CSRBF to simulate various problems in 2D
 
-### Below is an example of Poisson equation with homogeneous Dirichlet boundary condition
+### These codes are starting points for the more general solver.
+
+Below is an example of Poisson equation with homogeneous Dirichlet boundary condition
 
 
 #### For your analysis You can find and install the following packages from the url
