@@ -12,7 +12,7 @@ Below is an example of Poisson equation with homogeneous Dirichlet boundary cond
   
   https://github.com/pyccel/pyccel
 
-# ... (left) adapted mesh (right) approcimate solution
+# ... (left) adapted mesh (right) approximate solution
 ![PNG](https://github.com/Bahari95/simpleCSRBF/blob/main/r_refinement_ex.png)
 
 # ... Stencil Matrix for adapted mesh
