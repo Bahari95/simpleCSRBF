@@ -21,8 +21,8 @@ def assemble_csrbf_tools(X_cor, Y_cor, nx, ny, s, span, r_xy, support, coef_diff
                  i2 = 0
                  spectr = support[i1, i2]
                  for ij_span in range(spectr):
-                         j1  = span[i1, i2, 0, ij_span]
-                         j2  = span[i1, i2, 1, ij_span]
+                         j1  = span[i1, i2, 2, ij_span]
+                         j2  = span[i1, i2, 3, ij_span]
                          r   = r_xy  [i1, i2, ij_span]
                          #...
                          As[i1,i2,j1,j2] = (1-r/s)**6.*(3+18*r/s+35.*(r/s)**2)
@@ -40,8 +40,8 @@ def assemble_csrbf_tools(X_cor, Y_cor, nx, ny, s, span, r_xy, support, coef_diff
                  i1     = 0
                  spectr = support[i1, i2]
                  for ij_span in range(spectr):
-                         j1  = span[i1, i2, 0, ij_span]
-                         j2  = span[i1, i2, 1, ij_span]
+                         j1  = span[i1, i2, 2, ij_span]
+                         j2  = span[i1, i2, 3, ij_span]
                          r   = r_xy  [i1, i2, ij_span]
                          #...
                          As[i1,i2,j1,j2] = (1-r/s)**6.*(3+18*r/s+35.*(r/s)**2)
@@ -52,8 +52,8 @@ def assemble_csrbf_tools(X_cor, Y_cor, nx, ny, s, span, r_xy, support, coef_diff
                  i1 = nx-1
                  spectr = support[i1, i2]
                  for ij_span in range(spectr):
-                         j1  = span[i1, i2, 0, ij_span]
-                         j2  = span[i1, i2, 1, ij_span]
+                         j1  = span[i1, i2, 2, ij_span]
+                         j2  = span[i1, i2, 3, ij_span]
                          r   = r_xy  [i1, i2, ij_span]
                          #...
                          As[i1,i2,j1,j2] = (1-r/s)**6.*(3+18*r/s+35.*(r/s)**2)
@@ -67,12 +67,15 @@ def assemble_csrbf_tools(X_cor, Y_cor, nx, ny, s, span, r_xy, support, coef_diff
                  t  = Y_cor[i1,i2]                 
                  spectr = support[i1, i2]
                  for ij_span in range(spectr):
-                         j1  = span[i1, i2, 0, ij_span]
-                         j2  = span[i1, i2, 1, ij_span]
+                         j1  = span[i1, i2, 2, ij_span]
+                         j2  = span[i1, i2, 3, ij_span]
                          r   = r_xy  [i1, i2, ij_span]
                          # ..
-                         x2  = X_cor[j1,j2]
-                         t2  = Y_cor[j1,j2] 
+                         j1_g= span[i1, i2, 0, ij_span]
+                         j2_g= span[i1, i2, 1, ij_span]
+                         # ..
+                         x2  = X_cor[j1_g,j2_g]
+                         t2  = Y_cor[j1_g,j2_g] 
                          #...
                          As[i1,i2,j1,j2] = -56.*(t-t2)*(1.-r/s)**5/s**2*(1+5.*r/s) - coef_diff * ( (-56/s**2)*(1-r/s)**4.*( (1-r/s)*(1+5*r/s) - 30.*(x-x2)**2/s**2 ) )
                          

@@ -23,6 +23,7 @@ import time
 from gallery_section_01             import assemble_Poisson_stiffnes_rhs
 from simple_CSRBF                   import CSRBF_basis
 from simple_CSRBF                   import results
+from linalg                         import StencilMatrix
 
 #======================================================================================
 ##                    II- CSRBF method -II
@@ -37,7 +38,7 @@ from simple_CSRBF                   import results
 #--------------------------------------------------------------------------------------
 
 #.. The number of points in x direction
-nx    = 100                  
+nx    = 100             
 #.. The number of points in y direction
 ny    = 100
 # ... The total number of points (Number of nodes)
@@ -57,19 +58,26 @@ Y = loadtxt('Y_ad_'+str(ny)+'.txt')
 # The RBF function coefficient : scaling parameter
 s          = 0.05
 
-# stiffness matrix
-stiffness  = np.zeros((nx,ny,nx,ny), dtype = np.double)   
-# right hand side
-rhs        = np.zeros((nx,ny), dtype = np.double)         
-
 # ... Computation of CSRBF TOOLS
-span, r_xy, support = CSRBF_basis(X, Y, nx, ny, s)
+max_span_x, max_span_y, span, r_xy, support = CSRBF_basis(X, Y, nx, ny, s)
+print(max_span_x, max_span_y)
+# stiffness matrix
+#stiffness  = np.zeros((nx,ny,nx,ny), dtype = np.double) 
+stiffness  = StencilMatrix(nx, ny, max_span_x, max_span_y, support, span)
+# right hand side
+rhs        = np.zeros((nx,ny), dtype = np.double) 
 
 # ... Assembles matrix and rhs of RBF-Poisson
-assemble_Poisson_stiffnes_rhs(X, Y, nx, ny, s, span, r_xy, support, stiffness, rhs)
+assemble_Poisson_stiffnes_rhs(X, Y, nx, ny, s, span, r_xy, support, stiffness._data, rhs)
 
 # ... Linear system from RBF 
-stiffness = stiffness.reshape(nx*ny, nx*ny)
+stiffness = stiffness.tosparse()
+#stiffness = stiffness.reshape(nx*ny, nx*ny)
+
+# visualize the sparse matrix with Spy
+#plt.spy(stiffness)
+#plt.show()
+
 # ...
 rhs       = rhs.reshape(nx*ny)
 

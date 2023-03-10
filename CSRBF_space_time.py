@@ -23,38 +23,45 @@ import time
 from gallery_section_02             import assemble_csrbf_stiffnes_rhs
 from simple_CSRBF                   import CSRBF_basis
 from simple_CSRBF                   import results
+from linalg                         import StencilMatrix
 
 # le temps maximal
-t_max    = 3.5    
+t_max    = 2.5    
 x_max    = 2.
 # The RBF function coefficient : scaling parameter
-s         = 0.5
+s         = 0.1
 
 # ... discrètisation
 coef_diff = 0.1576
 ro        = 0.15
 #..
-dx        = 0.05 
-dt        = 0.05 #(ro*dx*dx)/coef_diff
-nt        = int(t_max/dt)
-nx        = int(x_max/dx)
+#dx        = 0.05 
+#dt        = 0.05 #(ro*dx*dx)/coef_diff
+nt        = 100 #int(t_max/dt)
+nx        = 100 #int(x_max/dx)
 t         = np.linspace(0, t_max, nt)
 x         = np.linspace(0, x_max, nx)
 T, X      = np.meshgrid(t, x)
 
-# stiffness matrix
-stiffness  = np.zeros((nx,nt,nx,nt), dtype = np.double)   
-# right hand side
-rhs        = np.zeros((nx,nt), dtype = np.double)         
-
 # ... Computation of CSRBF TOOLS
-span, r_xt, support = CSRBF_basis(X, T, nx, nt, s)
+max_span_x, max_span_t, span, r_xt, support = CSRBF_basis(X, T, nx, nt, s)
+print(max_span_x, max_span_t)
+# stiffness matrix
+stiffness  = StencilMatrix(nx, nt, max_span_x, max_span_t, support, span)
+
+# right hand side
+rhs        = np.zeros((nx,nt), dtype = np.double) 
 
 # ... Assembles matrix and rhs of RBF-Poisson
-assemble_csrbf_stiffnes_rhs(X, T, nx, nt, s, span, r_xt, support, coef_diff, stiffness, rhs)
+assemble_csrbf_stiffnes_rhs(X, T, nx, nt, s, span, r_xt, support, coef_diff, stiffness._data, rhs)
 
 # ... Linear system from RBF 
-stiffness = stiffness.reshape(nx*nt, nx*nt)
+stiffness = stiffness.tosparse()
+#stiffness = stiffness.reshape(nx*ny, nx*ny)
+
+# visualize the sparse matrix with Spy
+plt.spy(stiffness)
+plt.show()
 # ...
 rhs       = rhs.reshape(nx*nt)
 

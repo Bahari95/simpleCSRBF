@@ -46,53 +46,83 @@ def fin_support(X, Y, nx, ny, s, support):
 pyccel_fin_support = epyccel(fin_support)
 
 # -------
-@types('real[:,:]', 'real[:,:]', 'int', 'int', 'real', 'int', 'int[:,:,:,:]', 'real[:,:,:]')
-def CSRBF_tools(X, Y, nx, ny, s, max_span, span, r_span):
+@types('real[:,:]', 'real[:,:]', 'int', 'int', 'real', 'int[:,:]', 'int[:,:,:,:]', 'real[:,:,:]')
+def CSRBF_tools(X, Y, nx, ny, s, support, span, r_span):
 	from numpy import sqrt
 	for i in range(nx):
 	  for j in range(ny):
 	    
-	    ij_span = 0
-	    for k1 in range(1,i+1):
-	        for k2 in range(1,j+1):
-	            r = sqrt((X[i,j]-X[i-k1,j-k2])**2 + (Y[i,j]-Y[i-k1,j-k2])**2)
+	    ij_span  = 0
+	    max_span = support[i,j]
+	    i_loc    = 0
+	    for k1 in range(0,nx-i):
+	        j_loc  = 0
+	        for k2 in range(0,ny-j):
+	            r = sqrt((X[i,j]-X[i+k1,j+k2])**2 + (Y[i,j]-Y[i+k1,j+k2])**2)
 	            if r < s :
-	                 span[i,j,0,ij_span] = i-k1
-	                 span[i,j,1,ij_span] = j-k2
+	                 span[i,j,0,ij_span] = i+k1
+	                 span[i,j,1,ij_span] = j+k2 	
+	                                  
+	                 span[i,j,2,ij_span] = i_loc	                 
+	                 span[i,j,3,ij_span] = j_loc
+	                 
 	                 r_span[i,j,ij_span] = r
+	                 
 	                 ij_span            += 1
+	                 j_loc              += 1
 	            if ij_span == max_span:
 	                    break
+	        for k2 in range(1,j+1):
+	            r = sqrt((X[i,j]-X[i+k1,j-k2])**2 + (Y[i,j]-Y[i+k1,j-k2])**2)
+	            if r < s :
+	                 span[i,j,0,ij_span] = i+k1
+	                 span[i,j,1,ij_span] = j-k2
+
+	                 span[i,j,2,ij_span] = i_loc	                 
+	                 span[i,j,3,ij_span] = j_loc
+	                 
+	                 r_span[i,j,ij_span] = r
+	                 ij_span            += 1
+	                 j_loc              += 1
+	            if ij_span == max_span:
+	                    break
+	        if j_loc > 0 :
+	               i_loc += 1
+	        if ij_span == max_span:
+	               break
+
+	    for k1 in range(1,i+1):
+	        j_loc  = 0
 	        for k2 in range(0,ny-j):
 	            r = sqrt((X[i,j]-X[i-k1,j+k2])**2 + (Y[i,j]-Y[i-k1,j+k2])**2)
 	            if r < s :
 	                 span[i,j,0,ij_span] = i-k1
 	                 span[i,j,1,ij_span] = j+k2
+
+	                 span[i,j,2,ij_span] = i_loc	                 
+	                 span[i,j,3,ij_span] = j_loc
+	                 
 	                 r_span[i,j,ij_span] = r
 	                 ij_span            += 1
+	                 j_loc              += 1
 	            if ij_span == max_span:
 	                    break
-	        if ij_span == max_span:
-	               break
-	    for k1 in range(0,nx-i):
 	        for k2 in range(1,j+1):
-	            r = sqrt((X[i,j]-X[i+k1,j-k2])**2 + (Y[i,j]-Y[i+k1,j-k2])**2)
+	            r = sqrt((X[i,j]-X[i-k1,j-k2])**2 + (Y[i,j]-Y[i-k1,j-k2])**2)
 	            if r < s :
-	                 span[i,j,0,ij_span]  = i+k1
-	                 span[i,j,1,ij_span]  = j-k2
-	                 r_span[i,j,ij_span]  = r
-	                 ij_span            += 1
-	            if ij_span == max_span:
-	                    break
-	        for k2 in range(0,ny-j):
-	            r = sqrt((X[i,j]-X[i+k1,j+k2])**2 + (Y[i,j]-Y[i+k1,j+k2])**2)
-	            if r < s :
-	                 span[i,j,0,ij_span] = i+k1
-	                 span[i,j,1,ij_span] = j+k2
+	                 span[i,j,0,ij_span] = i-k1
+	                 span[i,j,1,ij_span] = j-k2
+
+	                 span[i,j,2,ij_span] = i_loc	                 
+	                 span[i,j,3,ij_span] = j_loc
+	                 
 	                 r_span[i,j,ij_span] = r
 	                 ij_span            += 1
+	                 j_loc              += 1
 	            if ij_span == max_span:
 	                    break
+	        if j_loc > 0 :
+	               i_loc += 1
 	        if ij_span == max_span:
 	               break
 	return 0.
@@ -100,19 +130,32 @@ def CSRBF_tools(X, Y, nx, ny, s, max_span, span, r_span):
 pyccel_CSRBF_tools = epyccel(CSRBF_tools)
 
 def CSRBF_basis(X, Y, nx, ny, s):
-	# X is x-coordinates 2D matrix
-	# Y is y-coordinates 2D matrix
+	'''
+	CSRBF_basis : computes the span according to scaling parameter "s" and euclidian distance for all points in the span,
+	
+	where,
+	
+	# X  is x-coordinates 2D matrix
+	# Y  is y-coordinates 2D matrix
+	# nx is number of points in x direction
+	# ny is number of points in y direction
+	# s  is scaling parameter 
+	TODO : LOC_SPAN
+	-> max_span_x : 
+	-> max_span_y :
+	'''
 	support       = zeros((nx,ny), dtype = int)                  # ... Determine the span index for spans
 	pyccel_fin_support(X, Y, nx, ny, s, support)
 	# ...
 	max_span      = int(np.max(support))
 	#...
 	r_xy          = zeros((nx,ny, max_span))                     # ... computed distance for non niglicted RBF                 
-	span          = np.zeros((nx,ny,2,max_span), dtype = int)    # ... Determine the global index  for non-vanishing CSRBF
+	span          = np.zeros((nx,ny,4,max_span), dtype = int)    # ... Determine the global index  for non-vanishing CSRBF
 	#...
-	pyccel_CSRBF_tools(X, Y, nx, ny, s, max_span, span, r_xy)
-
-	return span, r_xy, support
+	pyccel_CSRBF_tools(X, Y, nx, ny, s, support, span, r_xy)
+	# ...
+	max_span_x, max_span_y = np.max(span[:,:,2,:])+1, np.max(span[:,:,3,:])+1
+	return max_span_x, max_span_y, span, r_xy, support
 	
 # .... Wendland function C6
 @types('int', 'int', 'real', 'int[:,:,:,:]', 'real[:,:,:]', 'int[:,:]', 'real[:,:,:,:]',)
