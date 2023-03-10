@@ -45,7 +45,7 @@ T, X      = np.meshgrid(t, x)
 
 # ... Computation of CSRBF TOOLS
 max_span_x, max_span_t, span, r_xt, support = CSRBF_basis(X, T, nx, nt, s)
-print(max_span_x, max_span_t)
+
 # stiffness matrix
 stiffness  = StencilMatrix(nx, nt, max_span_x, max_span_t, support, span)
 
@@ -69,10 +69,10 @@ rhs       = rhs.reshape(nx*nt)
 lu        = sla.splu(csc_matrix(stiffness))
 
 # ...
-alphas    = lu.solve(rhs)
+U         = lu.solve(rhs)
 
 # ... Computation of the RBF approximate solution
-U_CSRBF_ET, u_exact = results(X, T, nx, nt, s, span, r_xt, support, alphas, u_exact =  True)
+U_CSRBF_ET, u_exact = results(X, T, nx, nt, s, U, span = span, r_xy = r_xt, support = support, u_exact =  True)
 
          
 print(" ERROR INFTY =", np.max(np.absolute(U_CSRBF_ET- u_exact)) )

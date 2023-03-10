@@ -90,8 +90,8 @@ def assemble_csrbf_tools(X_cor, Y_cor, nx, ny, s, span, r_xy, support, coef_diff
 assemble_csrbf_stiffnes_rhs = epyccel(assemble_csrbf_tools) 
 
 # ..... MultiQuadric	
-@types('real[:,:]', 'real[:,:]', 'int', 'int', 'real', 'int[:,:,:,:]', 'real[:,:,:]', 'int[:,:]', 'real', 'real[:,:,:,:]', 'real[:,:]')
-def assemble_rbf_tools(X_cor, Y_cor, nx, ny, c, span, r_xy, support, coef_diff, As, Bs): 
+@types('real[:,:]', 'real[:,:]', 'int', 'int', 'real', 'real', 'real[:,:,:,:]', 'real[:,:]')
+def assemble_rbf_tools(X_cor, Y_cor, nx, ny, c, coef_diff, As, Bs): 
      from numpy import exp
      from numpy import cos
      from numpy import sin
@@ -101,13 +101,11 @@ def assemble_rbf_tools(X_cor, Y_cor, nx, ny, c, span, r_xy, support, coef_diff, 
      for i1 in range(nx):
                  # ... on the boundary y = 0.
                  i2 = 0
-                 spectr = support[i1, i2]
-                 for ij_span in range(spectr):
-                         j1  = span[i1, i2, 0, ij_span]
-                         j2  = span[i1, i2, 1, ij_span]
-                         r   = r_xy  [i1, i2, ij_span]
+                 for j1 in range(0,nx):
+                     for j2 in range(0,ny):
+                         r  = (X_cor[i1, i2]-X_cor[j1, j2])**2+(Y_cor[i1, i2]-Y_cor[j1, j2])**2
                          #...
-                         As[i1,i2,j1,j2] = sqrt( r**2 + c**2 )
+                         As[i1,i2,j1,j2] = sqrt( r + c**2 )
                  # ... Initial conditions
                  x  = X_cor[i1,i2]
                  f = 0.
@@ -120,25 +118,21 @@ def assemble_rbf_tools(X_cor, Y_cor, nx, ny, c, span, r_xy, support, coef_diff, 
      for i2 in range(ny):
                  # ... on the boundary x = 0.
                  i1     = 0
-                 spectr = support[i1, i2]
-                 for ij_span in range(spectr):
-                         j1  = span[i1, i2, 0, ij_span]
-                         j2  = span[i1, i2, 1, ij_span]
-                         r   = r_xy  [i1, i2, ij_span]
+                 for j1 in range(0,nx):
+                     for j2 in range(0,ny):
+                         r  = (X_cor[i1, i2]-X_cor[j1, j2])**2+(Y_cor[i1, i2]-Y_cor[j1, j2])**2
                          #...
-                         As[i1,i2,j1,j2] = sqrt( r**2 + c**2 )
+                         As[i1,i2,j1,j2] = sqrt( r + c**2 )
                  Bs[i1,i2] = 0.
                  
      for i2 in range(ny):
                  # ... on the boundary x =1
                  i1 = nx-1
-                 spectr = support[i1, i2]
-                 for ij_span in range(spectr):
-                         j1  = span[i1, i2, 0, ij_span]
-                         j2  = span[i1, i2, 1, ij_span]
-                         r   = r_xy  [i1, i2, ij_span]
+                 for j1 in range(0,nx):
+                     for j2 in range(0,ny):
+                         r  = (X_cor[i1, i2]-X_cor[j1, j2])**2+(Y_cor[i1, i2]-Y_cor[j1, j2])**2
                          #...
-                         As[i1,i2,j1,j2] = sqrt( r**2 + c**2 )
+                         As[i1,i2,j1,j2] = sqrt( r + c**2 )
                  Bs[i1,i2] = 0.
 
 
@@ -147,16 +141,14 @@ def assemble_rbf_tools(X_cor, Y_cor, nx, ny, c, span, r_xy, support, coef_diff, 
                  
                  x  = X_cor[i1,i2]
                  t  = Y_cor[i1,i2]                 
-                 spectr = support[i1, i2]
-                 for ij_span in range(spectr):
-                         j1  = span[i1, i2, 0, ij_span]
-                         j2  = span[i1, i2, 1, ij_span]
-                         r   = r_xy  [i1, i2, ij_span]
+                 for j1 in range(0,nx):
+                     for j2 in range(0,ny):
+                         r  = (X_cor[i1, i2]-X_cor[j1, j2])**2+(Y_cor[i1, i2]-Y_cor[j1, j2])**2
                          # ..
                          x2  = X_cor[j1,j2]
                          t2  = Y_cor[j1,j2] 
                          #...
-                         As[i1,i2,j1,j2] = (t-t2)/sqrt( r**2+c**2) - coef_diff * ((t-t2)**2 + c**2)/((sqrt( r**2 + c**2))**3)
+                         As[i1,i2,j1,j2] = (t-t2)/sqrt( r+c**2) - coef_diff * ((t-t2)**2 + c**2)/((sqrt( r + c**2))**3)
                          
                  # ...test 0
                  #f  = 2.*pi**2*sin(pi*x)*sin(pi*y)

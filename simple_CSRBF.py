@@ -10,124 +10,15 @@ generation with Pyccel.
 __all__ = ['CSRBF_tools',
           'assemble_mass']
 
-from pyccel.decorators              import types
-from pyccel.epyccel                 import epyccel
+from request_csrbf                  import pyccel_fin_support
+from request_csrbf                  import pyccel_CSRBF_tools
+from request_csrbf                  import assemble_mass_matrixWC6
+# ...
+from gallery                        import assemble_mass_matrixMQ
+from gallery                        import sol_exact
+# ...
 from numpy                          import zeros
 import numpy as np
-
-# -------
-@types('real[:,:]', 'real[:,:]', 'int', 'int', 'real', 'int[:,:]')
-def fin_support(X, Y, nx, ny, s, support):
-	from numpy import sqrt
-	for i in range(nx):
-	  for j in range(ny):
-	    ij_span = 0
-	    for k1 in range(1,i+1):
-	        for k2 in range(1,j+1):
-	            r = sqrt((X[i,j]-X[i-k1,j-k2])**2 + (Y[i,j]-Y[i-k1,j-k2])**2)
-	            if r < s :
-	                 ij_span            += 1
-	        for k2 in range(0,ny-j):
-	            r = sqrt((X[i,j]-X[i-k1,j+k2])**2 + (Y[i,j]-Y[i-k1,j+k2])**2)
-	            if r < s :
-	                 ij_span            += 1
-
-	    for k1 in range(0,nx-i):
-	        for k2 in range(1,j+1):
-	            r = sqrt((X[i,j]-X[i+k1,j-k2])**2 + (Y[i,j]-Y[i+k1,j-k2])**2)
-	            if r < s :
-	                 ij_span             += 1
-	        for k2 in range(0,ny-j):
-	            r = sqrt((X[i,j]-X[i+k1,j+k2])**2 + (Y[i,j]-Y[i+k1,j+k2])**2)
-	            if r < s :
-	                 ij_span            += 1
-	    support[i, j] = ij_span
-	return 0.
-pyccel_fin_support = epyccel(fin_support)
-
-# -------
-@types('real[:,:]', 'real[:,:]', 'int', 'int', 'real', 'int[:,:]', 'int[:,:,:,:]', 'real[:,:,:]')
-def CSRBF_tools(X, Y, nx, ny, s, support, span, r_span):
-	from numpy import sqrt
-	for i in range(nx):
-	  for j in range(ny):
-	    
-	    ij_span  = 0
-	    max_span = support[i,j]
-	    i_loc    = 0
-	    for k1 in range(0,nx-i):
-	        j_loc  = 0
-	        for k2 in range(0,ny-j):
-	            r = sqrt((X[i,j]-X[i+k1,j+k2])**2 + (Y[i,j]-Y[i+k1,j+k2])**2)
-	            if r < s :
-	                 span[i,j,0,ij_span] = i+k1
-	                 span[i,j,1,ij_span] = j+k2 	
-	                                  
-	                 span[i,j,2,ij_span] = i_loc	                 
-	                 span[i,j,3,ij_span] = j_loc
-	                 
-	                 r_span[i,j,ij_span] = r
-	                 
-	                 ij_span            += 1
-	                 j_loc              += 1
-	            if ij_span == max_span:
-	                    break
-	        for k2 in range(1,j+1):
-	            r = sqrt((X[i,j]-X[i+k1,j-k2])**2 + (Y[i,j]-Y[i+k1,j-k2])**2)
-	            if r < s :
-	                 span[i,j,0,ij_span] = i+k1
-	                 span[i,j,1,ij_span] = j-k2
-
-	                 span[i,j,2,ij_span] = i_loc	                 
-	                 span[i,j,3,ij_span] = j_loc
-	                 
-	                 r_span[i,j,ij_span] = r
-	                 ij_span            += 1
-	                 j_loc              += 1
-	            if ij_span == max_span:
-	                    break
-	        if j_loc > 0 :
-	               i_loc += 1
-	        if ij_span == max_span:
-	               break
-
-	    for k1 in range(1,i+1):
-	        j_loc  = 0
-	        for k2 in range(0,ny-j):
-	            r = sqrt((X[i,j]-X[i-k1,j+k2])**2 + (Y[i,j]-Y[i-k1,j+k2])**2)
-	            if r < s :
-	                 span[i,j,0,ij_span] = i-k1
-	                 span[i,j,1,ij_span] = j+k2
-
-	                 span[i,j,2,ij_span] = i_loc	                 
-	                 span[i,j,3,ij_span] = j_loc
-	                 
-	                 r_span[i,j,ij_span] = r
-	                 ij_span            += 1
-	                 j_loc              += 1
-	            if ij_span == max_span:
-	                    break
-	        for k2 in range(1,j+1):
-	            r = sqrt((X[i,j]-X[i-k1,j-k2])**2 + (Y[i,j]-Y[i-k1,j-k2])**2)
-	            if r < s :
-	                 span[i,j,0,ij_span] = i-k1
-	                 span[i,j,1,ij_span] = j-k2
-
-	                 span[i,j,2,ij_span] = i_loc	                 
-	                 span[i,j,3,ij_span] = j_loc
-	                 
-	                 r_span[i,j,ij_span] = r
-	                 ij_span            += 1
-	                 j_loc              += 1
-	            if ij_span == max_span:
-	                    break
-	        if j_loc > 0 :
-	               i_loc += 1
-	        if ij_span == max_span:
-	               break
-	return 0.
-# ...
-pyccel_CSRBF_tools = epyccel(CSRBF_tools)
 
 def CSRBF_basis(X, Y, nx, ny, s):
 	'''
@@ -157,84 +48,38 @@ def CSRBF_basis(X, Y, nx, ny, s):
 	max_span_x, max_span_y = np.max(span[:,:,2,:])+1, np.max(span[:,:,3,:])+1
 	return max_span_x, max_span_y, span, r_xy, support
 	
-# .... Wendland function C6
-@types('int', 'int', 'real', 'int[:,:,:,:]', 'real[:,:,:]', 'int[:,:]', 'real[:,:,:,:]',)
-def assemble_mass(nx, ny, s, span, r_xy, support, K): 
-     from numpy import exp
-     from numpy import cos
-     from numpy import sin
-     from numpy import pi
-     from numpy import sqrt
-     for i1 in range(0,nx):
-        for i2 in range(0,ny):
-                 
-                 spectr = support[i1, i2]
-                 for ij_span in range(spectr):
-                         j1 = span[i1, i2, 0, ij_span]
-                         j2 = span[i1, i2, 1, ij_span]
-                         r  = r_xy  [i1, i2, ij_span]
-                         #...
-                         K[i1,i2,j1,j2]  = (1-r/s)**6.*(3+18.*r/s+35.*(r/s)**2)
-     return 0
-     
-assemble_mass_matrixWC6 = epyccel(assemble_mass)    
 
-# ..... MultiQuadric	
-@types('int', 'int', 'real', 'int[:,:,:,:]', 'real[:,:,:]', 'int[:,:]', 'real[:,:,:,:]')
-def assemble_massMQ(nx, ny, c, span, r_xy, support, K): 
-     from numpy import exp
-     from numpy import cos
-     from numpy import sin
-     from numpy import pi
-     from numpy import sqrt
-     for i1 in range(0,nx):
-        for i2 in range(0,ny):
-                 
-                 spectr = support[i1, i2]
-                 for ij_span in range(spectr):
-                         j1 = span[i1, i2, 0, ij_span]
-                         j2 = span[i1, i2, 1, ij_span]
-                         r  = r_xy  [i1, i2, ij_span]
-                         #...
-                         K[i1,i2,j1,j2]  = sqrt(r**2+c**2)
-     return 0
-     
-assemble_mass_matrixMQ = epyccel(assemble_massMQ)    
-
-@types('real[:,:]', 'real[:,:]', 'int', 'int', 'real[:,:]')
-def assemble_sol_exact(X_cor, Y_cor, nx, ny, u_exact): 
-     from numpy import exp
-     from numpy import cos
-     from numpy import sin
-     from numpy import pi
-     from numpy import sqrt
-     for i1 in range(0,nx):
-        for i2 in range(0,ny):
-                 
-                 x  = X_cor[i1,i2]
-                 t  = Y_cor[i1,i2] 
-                 for n in range(1000):
-                         u_exact[i1,i2] += 800./(pi**2*(2.*n+1)**2)*cos(pi*(2.*n-1)*(x-1.)*0.5)*exp(-0.3738*(2.*n+1)**2*t)
-     return 0
-sol_exact = epyccel(assemble_sol_exact) 
-
-def results(X, Y, nx, ny, s, span, r_xy, support, control_points, MQ = None, u_exact = None):
+def results(X, Y, nx, ny, s, control_points, span = None, r_xy = None, support = None, MQ = None, u_exact = None):
+	'''
+	this function compute the approximate solution by multiplying mass matrix and control points
+	# X  is x-coordinates 2D matrix
+	# Y  is y-coordinates 2D matrix
+	# nx is number of points in x direction
+	# ny is number of points in y direction
+	# s  is scaling parameter 
+	# control_points is a control points associated to the approximate solution
+	# span contains the index of local and global points contained in the circle induced by the radius "s"
+	# r_xy contains the euclidian distance between closed points according ton span
+	# support contains a total index of points in circle induced by "s"
+	# MQ for multiquadratic approach
+	# MQ is none for Wendland function C6
+	'''
 	#... Mass matrix 
 	K          = np.zeros((nx,ny,nx,ny), dtype = np.double)
 	
 	# ... Assembles mass matrix for compute a soluotion in grid points
-	if MQ == None:
+	if MQ is None:
 	       assemble_mass_matrixWC6(nx, ny, s, span, r_xy, support, K)
 	else :
-	       assemble_mass_matrixMQ(nx, ny, s, span, r_xy, support, K)
+	       assemble_mass_matrixMQ(nx, ny, s, X, Y, K)
 	K         = K.reshape(nx*ny, nx*ny)
 	# ...
-	u_csrbf   = K.dot(control_points)
-	u_csrbf   = u_csrbf.reshape(nx,ny)
+	u   = K.dot(control_points)
+	u   = u.reshape(nx,ny)
 	# ...
 	if u_exact is None :
-	      return u_csrbf
+	      return u
 	else :
 	      u_exact  = np.zeros((nx,ny))
 	      sol_exact(X, Y, nx, ny, u_exact)
-	      return u_csrbf, u_exact 
+	      return u, u_exact 

@@ -21,11 +21,10 @@ import time
 
 #./// TOOLS for CSRBF simulation
 from gallery_section_02             import assemble_rbf_stiffnes_rhs
-from simple_CSRBF                   import CSRBF_basis
 from simple_CSRBF                   import results
 
 # le temps maximal
-t_max     = 3. 
+t_max     = 3.5 
 x_max     = 2.
 # The RBF function coefficient : scaling parameter
 c         = 0.05
@@ -34,27 +33,26 @@ c         = 0.05
 coef_diff = 0.13/(0.11*7.5)
 ro        = 0.15
 #..
-dx        = 0.075 
-dt        = 0.05#(ro*dx*dx)/coef_diff
+dx        = 0.1 
+dt        = (ro*dx*dx)/coef_diff
 nt        = int(t_max/dt)
 nx        = int(x_max/dx)
 t         = np.linspace(0, t_max, nt)
 x         = np.linspace(0, x_max, nx)
-T, X      = np.meshgrid(t, x)
+T, X      = np.meshgrid(t, x)       
+
 
 # stiffness matrix
 stiffness  = np.zeros((nx,nt,nx,nt), dtype = np.double)   
 # right hand side
-rhs        = np.zeros((nx,nt), dtype = np.double)         
-
-# ... Computation of CSRBF TOOLS
-span, r_xt, support = CSRBF_basis(X, T, nx, nt, x_max+t_max)
+rhs        = np.zeros((nx,nt), dtype = np.double)  
 
 # ... Assembles matrix and rhs of RBF-Poisson
-assemble_rbf_stiffnes_rhs(X, T, nx, nt, c, span, r_xt, support, coef_diff, stiffness, rhs)
+assemble_rbf_stiffnes_rhs(X, T, nx, nt, c, coef_diff, stiffness, rhs)
 
 # ... Linear system from RBF 
 stiffness = stiffness.reshape(nx*nt, nx*nt)
+
 # ...
 rhs       = rhs.reshape(nx*nt)
 
@@ -62,10 +60,11 @@ rhs       = rhs.reshape(nx*nt)
 lu        = sla.splu(csc_matrix(stiffness))
 
 # ...
-alphas    = lu.solve(rhs)
+alpha     = lu.solve(rhs)
+
 
 # ... Computation of the RBF approximate solution
-U_CSRBF_ET, u_exact = results(X, T, nx, nt, c, span, r_xt, support, alphas, MQ = True, u_exact =  True)
+U_CSRBF_ET, u_exact = results(X, T, nx, nt, c, alpha, MQ = True, u_exact =  True)
 
          
 print(" ERROR INFTY =", np.max(np.absolute(U_CSRBF_ET- u_exact)) )
