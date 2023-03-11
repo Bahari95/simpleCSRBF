@@ -1,5 +1,5 @@
 # simpleCSRBF
-accelerated minimalist library for the compactly supported radial basis function CSRBF to simulate various problems in 2D
+accelerated minimalist library for the compactly supported radial basis function CSRBF to simulate various problems in 1d&2D
 
 ### These codes are starting points for the more general solver.(under development)
 
