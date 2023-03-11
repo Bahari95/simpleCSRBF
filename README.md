@@ -24,7 +24,7 @@ python3 -m pip install .
 ```shell
 python3 -m pip install --user -e .
 
-
+```
 # ... (left) adapted mesh (right) approximate solution
 ![PNG](https://github.com/Bahari95/simpleCSRBF/blob/main/r_refinement_ex.png)
 
