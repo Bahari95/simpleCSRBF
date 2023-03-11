@@ -16,12 +16,16 @@ Below is an example of Poisson equation with homogeneous Dirichlet boundary cond
 **Standard mode**
 
 ```shell
+cd simpleCSRBF
+
 python3 -m pip install .
 ```
 
 **Development mode**
 
 ```shell
+cd simpleCSRBF
+
 python3 -m pip install --user -e .
 
 ```
