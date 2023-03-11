@@ -11,6 +11,19 @@ Below is an example of Poisson equation with homogeneous Dirichlet boundary cond
 # For pyccel :
   
   https://github.com/pyccel/pyccel
+## Install
+
+**Standard mode**
+
+```shell
+python3 -m pip install .
+```
+
+**Development mode**
+
+```shell
+python3 -m pip install --user -e .
+
 
 # ... (left) adapted mesh (right) approximate solution
 ![PNG](https://github.com/Bahari95/simpleCSRBF/blob/main/r_refinement_ex.png)
