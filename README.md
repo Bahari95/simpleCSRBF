@@ -33,7 +33,7 @@ python3 -m pip install --user -e .
 ![PNG](https://github.com/Bahari95/simpleCSRBF/tree/main/simplemeshless/test/figs/r_refinement_ex.png)
 
 # ... Stencil Matrix for adapted mesh
-![PNG](https://github.com/Bahari95/simpleCSRBF/tree/main/simplemeshless/test/figs/r-refinement_matrix.png)
+![PNG](https://github.com/Bahari95/simpleCSRBF/blob/main/simplemeshless/test/figs/r-refinement_matrix.png)
 
 # ... Stencil Matrix for uniform mesh
 ![PNG](https://github.com/Bahari95/simpleCSRBF/tree/main/simplemeshless/test/figs/uniform_matrix.png)
