@@ -3,11 +3,73 @@
 
 import numpy as np
 from scipy.sparse import coo_matrix
+#===============================================================================
+# Stencil Matrix in  1D case
+#===============================================================================
+class StencilMatrix_1D( object ):
+    """
+    Matrix in 1-dimensional stencil format.
+    """
+    def __init__( self, nx, max_span, support, span, data_type = None):
 
+        #assert isinstance( dim, 2 )
+        
+        diags           = max_span
+        dims            = nx
+        self._support   = support
+        self._ndim      = dims
+        self._span      = span
+        
+        if data_type is None:
+           data_type    = np.float64
+           
+        self._data_type = data_type
+        self._data      = np.zeros( (dims,diags), dtype= data_type )
+        
+    # ...
+    def tosparse( self):
+
+        coo = self._tocoo_no_pads()
+
+        return coo
+    #...
+    def _tocoo_no_pads( self ):
+
+        # Shortcuts
+        npoints = self._support
+        nx      = self._ndim
+        span    = self._span
+        dtype   = self._data_type
+        # COO storage
+        rows = []
+        cols = []
+        data = []
+        for i1 in range(0,nx):
+                 
+                 spectr = npoints[i1]
+                 for i_span in range(spectr):
+                         j1    = span[i1, i_span]
+                         # ...
+                         value = self._data[i1, i_span]
+                         # ...
+                         rows.append( i1 )
+                         cols.append( j1 )
+                         data.append( value)
+        M = coo_matrix(
+                (data,(rows,cols)),
+                shape = [nx,nx],
+                dtype = dtype
+        )
+
+        M.eliminate_zeros()
+        return M
+        
+#===============================================================================
+# Stencil Matrix in  2D case
 #===============================================================================
 class StencilMatrix( object ):
     """
-    Matrix in n-dimensional stencil format.
+    Matrix in 2-dimensional stencil format.
     """
     def __init__( self, nx, ny, max_span_x, max_span_y, support, span, data_type = None):
 

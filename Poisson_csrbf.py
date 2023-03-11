@@ -15,7 +15,7 @@ from   scipy.sparse                 import csc_matrix, linalg as sla
 from   numpy                        import zeros, linalg, asarray
 from   numpy                        import cos, sin, pi, exp, sqrt, arctan2
 from   tabulate                     import tabulate
-from numpy                          import loadtxt 
+from   numpy                        import loadtxt 
 import numpy                        as     np
 import time
 
@@ -50,13 +50,13 @@ yl    = np.linspace(0,1, ny)
 Y, X  = np.meshgrid(yl, xl)
 
 #... Adapted mesh using nx = 100 times ny = 100 and test 0 only
-nx = 100; ny =100; n =nx*ny;
-X = loadtxt('X_ad_'+str(nx)+'.txt')
-Y = loadtxt('Y_ad_'+str(ny)+'.txt')
+#nx = 100; ny =100; n =nx*ny;
+#X = loadtxt('X_ad_'+str(nx)+'.txt')
+#Y = loadtxt('Y_ad_'+str(ny)+'.txt')
 
 # ... control Support radius
 # The RBF function coefficient : scaling parameter
-s          = 0.05
+s          = 0.1
 
 # ... Computation of CSRBF TOOLS
 max_span_x, max_span_y, span, r_xy, support = CSRBF_basis(X, Y, nx, ny, s)
@@ -82,18 +82,18 @@ rhs       = rhs.reshape(nx*ny)
 # ... Resolution of linear system
 lu        = sla.splu(csc_matrix(stiffness))
 # ...
-U    = lu.solve(rhs)
+U         = lu.solve(rhs)
 
 # ... Computation of the RBF approximate solution
-U_CSRBF_ET = results(X, Y, nx, ny, s, U, span = span, r_xy = r_xy, support = support)
+U_CSRBF_ET = results(X, Y, nx, ny, s, U, max_span_x = max_span_x, max_span_y = max_span_y, span = span, r_xy = r_xy, support = support)
 
 #... test 0
-U_exact_ET = exp(-200.*(((X-.5)/0.4)**2+((Y-.5)/0.4)**2-0.6)**2 )
+#U_exact_ET = exp(-200.*(((X-.5)/0.4)**2+((Y-.5)/0.4)**2-0.6)**2 )
 
 #... test 1
-#U_exact_ET = sin(pi*X)*sin(pi*Y)
+U_exact_ET = sin(pi*X)*sin(pi*Y)
          
-print(" ERROR INFTY =", np.max(np.absolute( U_CSRBF_ET - U_exact_ET)) )
+print(" Least square error =", np.sqrt(np.sum(( U_CSRBF_ET - U_exact_ET)**2)) )
 
 ##  plot
 figtitle  = 'RBF TIME-SPACE FOR FOURIER EQUATION'

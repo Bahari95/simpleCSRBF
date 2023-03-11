@@ -25,6 +25,14 @@ from simple_CSRBF                   import CSRBF_basis
 from simple_CSRBF                   import results
 from linalg                         import StencilMatrix
 
+
+#======================================================================================
+##                    II- CSRBF method -II
+## ... Spectrum in space: we use only the points (base) whose distance is less than s,
+## in order to obtain the stencil matrix.
+## ...see Wu and Wendland
+#======================================================================================
+
 # le temps maximal
 t_max    = 2.5    
 x_max    = 2.
@@ -72,7 +80,7 @@ lu        = sla.splu(csc_matrix(stiffness))
 U         = lu.solve(rhs)
 
 # ... Computation of the RBF approximate solution
-U_CSRBF_ET, u_exact = results(X, T, nx, nt, s, U, span = span, r_xy = r_xt, support = support, u_exact =  True)
+U_CSRBF_ET, u_exact = results(X, T, nx, nt, s, U, max_span_x = max_span_x, max_span_y = max_span_t, span = span, r_xy = r_xt, support = support, u_exact =  True)
 
          
 print(" ERROR INFTY =", np.max(np.absolute(U_CSRBF_ET- u_exact)) )
